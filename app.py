@@ -6,8 +6,11 @@ Session survives browser refresh. Auto-logout after 4 hours of inactivity.
 """
 import streamlit as st
 from modules.database import db
-from modules.auth import (get_user_by_email, verify_password,
-                          set_session, is_authenticated, _update_last_login)
+from modules.auth import (get_user_by_email, verify_password, set_session,
+                          is_authenticated, _update_last_login, register_user,
+                          request_password_reset, needs_password_change,
+                          clear_session)
+from modules.database import get_all_partners
 from modules.sso import (create_session_token, auto_login_from_url,
                          set_token_in_url, logout, get_token_from_url)
 
@@ -218,60 +221,158 @@ APPS = [
 auto_login_from_url()
 
 # ═════════════════════════════════════════════════════════════════════════════
-# LOGIN SCREEN
+# LOGIN SCREEN — 3 tabs: Sign In | Register | Forgot Password
 # ═════════════════════════════════════════════════════════════════════════════
 if not is_authenticated():
     _, mid, _ = st.columns([1, 1.2, 1])
     with mid:
         st.markdown(f"""
-        <div style="text-align:center;padding:3rem 0 2rem">
-            <div style="font-size:4rem">🚀</div>
-            <h1 style="color:white;font-size:2.2rem;font-weight:800;
-                       margin:0.5rem 0 0.2rem;letter-spacing:-1px">
-                Octa Platform
-            </h1>
-            <p style="color:{DARK['muted']};font-size:0.95rem;margin:0 0 0.5rem">
-                Your unified workspace — sign in once, access everything
-            </p>
-        </div>
-        <div style="background:{DARK['bg2']};border:1px solid {DARK['border']};
-                    border-radius:16px;padding:2rem">
-        """, unsafe_allow_html=True)
+<div style="text-align:center;padding:2.5rem 0 1.5rem">
+<div style="font-size:4rem">🚀</div>
+<h1 style="color:white;font-size:2.2rem;font-weight:800;
+           margin:0.5rem 0 0.2rem;letter-spacing:-1px">Octa Platform</h1>
+<p style="color:{DARK['muted']};font-size:0.95rem;margin:0">
+Sign in once — access all your apps</p>
+</div>""", unsafe_allow_html=True)
 
-        email    = st.text_input("Email address", placeholder="you@example.com",
-                                  key="l_email")
-        password = st.text_input("Password", type="password", key="l_pass")
-        st.markdown("<br>", unsafe_allow_html=True)
+        tab_login, tab_reg, tab_reset = st.tabs(
+            ["🔑  Sign In", "✨  Register", "🔓  Forgot Password"]
+        )
 
-        if st.button("Sign In → Access All Apps", type="primary",
-                     use_container_width=True, key="btn_login"):
-            if not email or not password:
-                st.warning("Please fill in both fields.")
-            else:
-                user = get_user_by_email(email)
-                if not user:
-                    st.error("❌ No account found with this email.")
-                elif user.get("status") == "pending":
-                    st.error("⏳ Your account is pending admin approval.")
-                elif user.get("status") == "disabled":
-                    st.error("🚫 Account disabled. Contact your admin.")
-                elif not verify_password(password, user.get("password_hash","")):
-                    st.error("❌ Incorrect password.")
+        # ── Sign In ───────────────────────────────────────────────────────────
+        with tab_login:
+            st.markdown("<br>", unsafe_allow_html=True)
+            email    = st.text_input("Email address", placeholder="you@example.com",
+                                      key="l_email")
+            password = st.text_input("Password", type="password", key="l_pass")
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("Sign In → Access All Apps", type="primary",
+                         use_container_width=True, key="btn_login"):
+                if not email or not password:
+                    st.warning("Please fill in both fields.")
                 else:
-                    set_session(user)
-                    _update_last_login(user["id"])
-                    token = create_session_token(user["id"])
-                    if token:
-                        st.session_state["sso_token"] = token
-                        set_token_in_url(token)
-                    st.rerun()
+                    user = get_user_by_email(email)
+                    if not user:
+                        st.error("❌ No account found with this email.")
+                    elif user.get("status") == "pending":
+                        st.error("⏳ Your account is pending admin approval.")
+                    elif user.get("status") == "disabled":
+                        st.error("🚫 Account disabled. Contact your admin.")
+                    elif not verify_password(password, user.get("password_hash","")):
+                        st.error("❌ Incorrect password.")
+                    else:
+                        set_session(user)
+                        _update_last_login(user["id"])
+                        token = create_session_token(user["id"])
+                        if token:
+                            st.session_state["sso_token"] = token
+                            set_token_in_url(token)
+                        st.rerun()
 
-        st.markdown("</div>", unsafe_allow_html=True)
-        st.markdown(f"""
-        <div style="text-align:center;margin-top:1rem;
-                    color:{DARK['muted']};font-size:0.78rem">
-            Don't have an account? Register through any Octa app you've been invited to.
-        </div>""", unsafe_allow_html=True)
+        # ── Register ──────────────────────────────────────────────────────────
+        with tab_reg:
+            st.markdown("<br>", unsafe_allow_html=True)
+            muted_c = DARK["muted"]; acc_c = DARK["accent"]; txt_c = DARK["text"]
+            st.markdown(
+                f"<div style='background:rgba(0,188,212,0.1);border:1px solid rgba(0,188,212,0.3);"
+                f"border-left:4px solid {acc_c};border-radius:10px;"
+                f"padding:0.9rem 1.1rem;margin-bottom:1rem;font-size:0.88rem'>"
+                f"<strong style='color:{acc_c}'>How it works</strong><br>"
+                f"<span style='color:{txt_c}'>1. Fill in the form and submit<br>"
+                f"2. An admin reviews and activates your account<br>"
+                f"3. Come back to Sign In once notified</span></div>",
+                unsafe_allow_html=True
+            )
+            rc1,rc2 = st.columns(2)
+            with rc1: reg_first = st.text_input("First name *", key="reg_first", placeholder="Maria")
+            with rc2: reg_last  = st.text_input("Last name *",  key="reg_last",  placeholder="Rossi")
+            reg_uname = st.text_input("Username *", key="reg_uname", placeholder="mariarossi (min 3 chars)")
+            reg_email = st.text_input("Email *",    key="reg_email", placeholder="you@example.com")
+
+            OTHER_ORG = "➕  My organisation is not in the list"
+            try:
+                pnames = [p["full_name"] for p in get_all_partners() if p.get("full_name")]
+            except Exception:
+                pnames = []
+            org_opts = ["— Select your organisation —"] + sorted(pnames) + [OTHER_ORG]
+            reg_org_sel = st.selectbox("Organisation *", options=org_opts, key="reg_org_sel")
+            reg_org_custom = ""
+            if reg_org_sel == OTHER_ORG:
+                reg_org_custom = st.text_input("Enter organisation name *", key="reg_org_cust",
+                                               placeholder="Full name of your organisation")
+            def _org():
+                if reg_org_sel == OTHER_ORG: return reg_org_custom.strip()
+                if reg_org_sel.startswith("—"): return ""
+                return reg_org_sel
+
+            rc3,rc4 = st.columns(2)
+            with rc3: reg_pass  = st.text_input("Password *", type="password", key="reg_pass",  placeholder="Min 8 chars")
+            with rc4: reg_pass2 = st.text_input("Confirm *",  type="password", key="reg_pass2", placeholder="Repeat password")
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("Submit Registration →", type="primary",
+                         use_container_width=True, key="btn_reg"):
+                org_val = _org()
+                if reg_pass != reg_pass2:
+                    st.error("❌ Passwords do not match.")
+                elif not all([reg_first,reg_last,reg_uname,reg_email,reg_pass]):
+                    st.warning("Please fill in all required fields.")
+                elif reg_org_sel.startswith("—"):
+                    st.warning("Please select your organisation.")
+                elif reg_org_sel == OTHER_ORG and not reg_org_custom.strip():
+                    st.warning("Please enter your organisation name.")
+                else:
+                    ok,msg,_ = register_user(reg_email,reg_uname,reg_first,
+                                             reg_last,reg_pass,organisation=org_val)
+                    if ok:
+                        suc_c = DARK["success"]
+                        st.markdown(
+                            f"<div style='background:rgba(40,167,69,0.12);"
+                            f"border-left:4px solid {suc_c};border-radius:10px;"
+                            f"padding:1rem 1.2rem;margin-top:1rem'>"
+                            f"✅ <strong style='color:{suc_c}'>Registration submitted!</strong><br>"
+                            f"<span style='color:{txt_c};font-size:0.88rem'>"
+                            f"Organisation: <strong>{org_val or '—'}</strong><br>"
+                            f"Your account is <strong>pending admin approval</strong>."
+                            f"</span></div>",
+                            unsafe_allow_html=True
+                        )
+                    else:
+                        st.error(f"❌ {msg}")
+
+        # ── Forgot Password ───────────────────────────────────────────────────
+        with tab_reset:
+            st.markdown("<br>", unsafe_allow_html=True)
+            warn_c = DARK["warning"]; txt_c = DARK["text"]
+            st.markdown(
+                f"<div style='background:rgba(246,204,82,0.1);border:1px solid rgba(246,204,82,0.3);"
+                f"border-left:4px solid {warn_c};border-radius:10px;"
+                f"padding:0.9rem 1.1rem;margin-bottom:1rem;font-size:0.88rem'>"
+                f"<strong style='color:{warn_c}'>Secure password reset</strong><br>"
+                f"<span style='color:{txt_c}'>1. Submit your email below<br>"
+                f"2. An admin verifies your identity and generates a temporary password<br>"
+                f"3. The admin shares it with you directly (phone / personal email)<br>"
+                f"4. Log in with the temporary password and set a new one</span></div>",
+                unsafe_allow_html=True
+            )
+            fp_email = st.text_input("Your registered email", key="fp_email",
+                                      placeholder="you@example.com")
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("Submit Reset Request →", type="primary",
+                         use_container_width=True, key="btn_reset"):
+                if not fp_email.strip():
+                    st.warning("Please enter your email address.")
+                else:
+                    ok,msg = request_password_reset(fp_email.strip())
+                    if ok: st.success(f"✅ {msg}")
+                    else:  st.error(f"❌ {msg}")
+
+        muted_c = DARK["muted"]
+        st.markdown(
+            f"<div style='text-align:center;margin-top:1rem;color:{muted_c};font-size:0.75rem'>"
+            f"Octa Platform · Questions? octainsight@gmail.com</div>",
+            unsafe_allow_html=True
+        )
     st.stop()
 
 # ═════════════════════════════════════════════════════════════════════════════
