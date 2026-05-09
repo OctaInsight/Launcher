@@ -90,8 +90,8 @@ APPS = [
         "label":       "Partner Network",
         "icon":        "🌐",
         "description": "Partner profiles, contacts, CloudEARTHi Alliance members",
-        "url":         "",
-        "status":      "construction",
+        "url":         "https://octa-partners.streamlit.app/",   # ← your real URL
+        "status":      "live",                                      # ← change this
         "col":         1,
     },
     {
