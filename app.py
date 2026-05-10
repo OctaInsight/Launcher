@@ -201,7 +201,7 @@ APPS = [
         "label":       "Task Manager",
         "icon":        "✅",
         "description": "Assign tasks, track progress and manage team to-dos",
-        "url":         "https://task-manager.streamlit.app",
+        "url":         "https://octa-task-manager.streamlit.app",
         "status":      "live",
         "col":         4,
     },
