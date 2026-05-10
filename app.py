@@ -136,8 +136,8 @@ APPS = [
         "label":       "Objectives & Work Plan Designer",
         "icon":        "📊",
         "description": "Design KPIs, deliverables, work packages, Gantt & budget",
-        "url":         "",
-        "status":      "construction",
+        "url":         "https://octakpi.streamlit.app/",
+        "status":      "live",
         "col":         2,
     },
     {
