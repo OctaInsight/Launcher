@@ -173,8 +173,8 @@ APPS = [
         "label":       "Financial Control",
         "icon":        "💶",
         "description": "Budget consumption, forecasting and financial reporting",
-        "url":         "",
-        "status":      "construction",
+        "url":         "https://octa_financial.streamlit.app/",
+        "status":      "live",
         "col":         3,
     },
     {
