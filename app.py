@@ -15,7 +15,7 @@ from modules.sso import (create_session_token, auto_login_from_url,
                          set_token_in_url, logout, get_token_from_url)
 
 st.set_page_config(
-    page_title="Octa Platform",
+    page_title="Octa-CloudEARTHi Platform",
     page_icon="🚀",
     layout="wide",
     initial_sidebar_state="collapsed",
