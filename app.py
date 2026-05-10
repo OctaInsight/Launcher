@@ -169,15 +169,6 @@ APPS = [
         "col":         3,
     },
     {
-        "key":         "octa_implementation",
-        "label":       "Implementation Monitor",
-        "icon":        "⚙️",
-        "description": "Activity-level tracking, partner contributions and reporting",
-        "url":         "",
-        "status":      "construction",
-        "col":         3,
-    },
-    {
         "key":         "octa_financial",
         "label":       "Financial Control",
         "icon":        "💶",
