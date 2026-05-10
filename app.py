@@ -15,7 +15,7 @@ from modules.sso import (create_session_token, auto_login_from_url,
                          set_token_in_url, logout, get_token_from_url)
 
 st.set_page_config(
-    page_title="Octa-CloudEARTHi Platform",
+    page_title="Octa Platform",
     page_icon="🚀",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -90,8 +90,8 @@ APPS = [
         "label":       "Partner Network",
         "icon":        "🌐",
         "description": "Partner profiles, contacts, CloudEARTHi Alliance members",
-        "url":         "https://octa-partners.streamlit.app/",   # ← your real URL
-        "status":      "live",                                      # ← change this
+        "url":         "https://octa-partners.streamlit.app/",
+        "status":      "live",
         "col":         1,
     },
     {
@@ -182,6 +182,15 @@ APPS = [
         "label":       "Financial Control",
         "icon":        "💶",
         "description": "Budget consumption, forecasting and financial reporting",
+        "url":         "",
+        "status":      "construction",
+        "col":         3,
+    },
+    {
+        "key":         "octa_risk_log",
+        "label":       "Project Risk Log",
+        "icon":        "🛡️",
+        "description": "Record, monitor and mitigate risks for ongoing funded projects",
         "url":         "",
         "status":      "construction",
         "col":         3,
