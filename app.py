@@ -164,8 +164,8 @@ APPS = [
         "label":       "Project Progress Tracker",
         "icon":        "🏗️",
         "description": "Monitor funded project milestones, deadlines and deliverables",
-        "url":         "",
-        "status":      "construction",
+        "url":         "https://project-progress.streamlit.app/",
+        "status":      "live",
         "col":         3,
     },
     {
