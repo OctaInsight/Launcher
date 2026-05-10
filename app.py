@@ -201,8 +201,8 @@ APPS = [
         "label":       "Task Manager",
         "icon":        "✅",
         "description": "Assign tasks, track progress and manage team to-dos",
-        "url":         "",
-        "status":      "construction",
+        "url":         "https://task-manager.streamlit.app",
+        "status":      "live",
         "col":         4,
     },
     # ── Column 5: Calendar (full-height) ────────────────────────────────────────
