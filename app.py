@@ -127,8 +127,8 @@ APPS = [
         "label":       "Proposal Intelligence",
         "icon":        "🤖",
         "description": "AI-powered call analysis, strategy & positioning suggestions",
-        "url":         "",
-        "status":      "construction",
+        "url":         "https://octa-intelligence.streamlit.app",
+        "status":      "live",
         "col":         2,
     },
     {
