@@ -182,7 +182,7 @@ APPS = [
         "label":       "Project Risk Log",
         "icon":        "🛡️",
         "description": "Record, monitor and mitigate risks for ongoing funded projects",
-        "url":         "https://octa-risk.streamlit.app/",
+        "url":         "https://octa-risks.streamlit.app/",
         "status":      "live",
         "col":         3,
     },
