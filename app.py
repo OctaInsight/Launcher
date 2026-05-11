@@ -182,8 +182,8 @@ APPS = [
         "label":       "Project Risk Log",
         "icon":        "🛡️",
         "description": "Record, monitor and mitigate risks for ongoing funded projects",
-        "url":         "",
-        "status":      "construction",
+        "url":         "https://octa-risk.streamlit.app/",
+        "status":      "live",
         "col":         3,
     },
     # ── Column 4: People & Tasks ────────────────────────────────────────────────
